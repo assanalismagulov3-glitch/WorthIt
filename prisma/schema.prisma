@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  currency  String   @default("KZT")
+  createdAt DateTime @default(now())
+  tx        Transaction[]
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "income" | "expense"
+  title     String
+  amount    Float
+  category  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model CalcItem {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String   // "installment" | "loan" | "deposit" | "split"
+  name      String
+  payload   Json
+  isActive  Boolean  @default(true)
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, kind])
+}
